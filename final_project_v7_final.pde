@@ -15,7 +15,7 @@ int hei = 800;
 color[][] colorMatrix;
 int currBox = 0;
 boolean isMousePressed = false;
-int ringsFromCenter = 1;
+int globalRingsFromCenter = 1;
 int numBoxes;
 boolean rainbow = false; //rainbow or recursion
 
@@ -85,26 +85,6 @@ void topLevelDraw(){
 
 
 
-color[][] createMatrix(color[][] matrix) {
-  
-  println("length of rows is:", pow(2,recursionLevel), "when recursionLevel is:", recursionLevel);
-  color[][] colorArray = new color[int(pow(2,recursionLevel))][int(pow(2,recursionLevel))];
-  for (int i =0; i < pow(2,recursionLevel); i++){
-      for (int j =0; j < int(pow(2,recursionLevel)); j++){
-        colorArray[i][j] = matrix[i][j];
-  }
-  }
-  
-  //color[][] colorArray = new color[int(pow(2,recursionLevel-1))][int(pow(2,recursionLevel))];
-  //for (int i =0; i < pow(2,recursionLevel); i++){
-  //    for (int j =0; j < pow(2,recursionLevel-1); j++){
-  //      colorArray[j][i] = 255;
-  //}
-  //}
-  return colorArray;
-}
-
-
 color[][] createNewMatrix() {
   
   println("length of rows is:", pow(2,recursionLevel), "when recursionLevel is:", recursionLevel);
@@ -115,12 +95,6 @@ color[][] createNewMatrix() {
   }
   }
   
-  //color[][] colorArray = new color[int(pow(2,recursionLevel-1))][int(pow(2,recursionLevel))];
-  //for (int i =0; i < pow(2,recursionLevel); i++){
-  //    for (int j =0; j < pow(2,recursionLevel-1); j++){
-  //      colorArray[j][i] = 255;
-  //}
-  //}
   return colorArray;
 }
 
@@ -153,57 +127,7 @@ void drawLoop(int row, int col, int i, int originX, int originY, int w, int h) {
 }
 
 
-int[] pointToMatrixEntry(int x, int y) {
-  float xBoxNum = x/(width/pow(2,recursionLevel));
-  float yBoxNum = y/(height/pow(2,recursionLevel));
-  //println("x box num:", xBoxNum, "yBoxNUm:", yBoxNum);
-  
-  
-  
-  if ((int(xBoxNum) + int(yBoxNum)) %2 == 0) {
-    
-    
-  }
-  
-  int[] result = {0,0};
-  return result;
-  
-  //  println("X box num is:", mouseX/(width/pow(2,recursionLevel-1)), "Y box num is:", mouseY/(height/pow(2,recursionLevel-1)));
-  //println("Matrix position is: [2*floor(xBoxNum)][yBoxNum] and [2*floor(xBoxNum) + 1][yBoxNum]");
-  
-}
 
-
-
-void drawBaseShape(int originX, int originY, int w, int h){
-  //println("currBox is:", currBox);
-  //Draw the individual triangles
-  float currPosition = sqrt(currBox);
-  //println("currPosition is:", currPosition);
-  newColor = colorMatrix[int(currPosition/pow(2,recursionLevel))][int(currPosition/pow(2,recursionLevel))];
-  newColor = color(random(255), random(255), random(255));
-  //if (mode == "rainbow") {
-  //  println("in color mode is rainbow");
-  //  newColor = color(random(255), random(255), random(255));
-  //}
-  
-  
-  fill(newColor);
-  stroke(newColor);
-  square(originX, originY, h);
-  newColor = color(random(255), random(255), random(255));
-  fill(newColor);
-  stroke(newColor);
-  square(originX + w, originY, h);
-  newColor = color(random(255), random(255), random(255));
-  fill(newColor);
-  stroke(newColor);
-  square(originX, originY + h, h);
-  newColor = color(random(255), random(255), random(255));
-  fill(newColor);
-  stroke(newColor);
-  square(originX + w, originY + h, h);
-}
 
 
 void draw(){
@@ -213,12 +137,11 @@ void draw(){
   
 
 
-  
+  //Only update stuff every .2 seconds
   if (millis() - lastMillis > 200) {
     lastMillis = millis();
      if (isMousePressed == true){
         //println("mouse is pressed");
-        background(255);
         if (rainbow) {
           newColor = color(random(255), random(255), random(255));
         }
@@ -226,16 +149,17 @@ void draw(){
           newColor = growRecurColor;
         }
         if (rainbow) {
-          colorRing(ringsFromCenter, xBoxNum, yBoxNum, newColor);
+          colorRing(globalRingsFromCenter, xBoxNum, yBoxNum, newColor);
         }
-        colorRing(ringsFromCenter, clickedBoxX, clickedBoxY, newColor);
-        ringsFromCenter += 1;
+        colorRing(globalRingsFromCenter, clickedBoxX, clickedBoxY, newColor);
+        globalRingsFromCenter += 1;
         numRings[numRings.length-1] += 1;
-        
+        println("globalRingsFromCenter:", globalRingsFromCenter);
         //delay(200);
         //topLevelDraw();
         i += 1;
       }
+      
     updateExistingRects();
     topLevelDraw();
   }
@@ -244,8 +168,11 @@ void draw(){
 
 void updateExistingRects(){
   for (int rectNum = 1; rectNum < numRings.length; rectNum++) {
-
-    if (rectMode[rectNum] == "down"){
+    //println("rectNum is:", rectNum, "rectNum rectMode is:", rectMode[rectNum]);
+    if (rectMode[rectNum] == "done"){
+      ;
+    }
+    else if (rectMode[rectNum] == "down"){
           if (rainbow) {
             colorRing(currRing[rectNum], rectCenterX[rectNum], rectCenterY[rectNum], growRectColor[rectNum]);
           }
@@ -255,25 +182,34 @@ void updateExistingRects(){
       
       colorRing(currRing[rectNum]-1, rectCenterX[rectNum], rectCenterY[rectNum], shrinkRecurColor);
       
+      currRing[rectNum] -= 1;
       if (currRing[rectNum] < 0) {
         rectMode[rectNum] = "up";
         currRing[rectNum] = 0;
       }
-      currRing[rectNum] -= 1;
+      
     }
-    if (rectMode[rectNum] == "up") {
+    else if (rectMode[rectNum] == "up") {
+      //println("currRing[rectNum] is:", currRing[rectNum], "and numRings is:", numRings[rectNum]);
       if (rainbow) {
             
             colorRing(currRing[rectNum], rectCenterX[rectNum], rectCenterY[rectNum], color(random(255), random(255), random(255)));  
         }
           
           else {
+            println("color in up is:", rectColor[rectNum]);
+            println("color[0] in up is:", rectColor[rectNum]);
+            //rectColor[rectNum] = color(red(rectColor[rectNum]), green(rectColor[rectNum]), blue(rectColor[rectNum]));
+            //THIS IS THE CODE THAT SHOULD BE MAKING IT MORE TRANSLUCENT BUT ISNT
+            rectColor[rectNum] = color(red(rectColor[rectNum]), green(rectColor[rectNum]), blue(rectColor[rectNum]), alpha(rectColor[rectNum])-15);
             colorRing(currRing[rectNum], rectCenterX[rectNum], rectCenterY[rectNum], rectColor[rectNum]);
+            
             
           }
       
       currRing[rectNum] += 1;
       if (currRing[rectNum] > numRings[rectNum]) {
+        
         rectMode[rectNum] = "done";
       }
       
@@ -284,6 +220,7 @@ void updateExistingRects(){
 
 
 void colorRing(int ringsFromCenter, int xBoxNum, int yBoxNum, color myColor) {
+  println("myColor is:", myColor, "ringsFromCenter is:", ringsFromCenter);
   //println("yBoxNum:", yBoxNum, "ringsFromCenter:", ringsFromCenter);
   int i = yBoxNum - ringsFromCenter;
   //println("numBoxes is:", numBoxes);
@@ -315,15 +252,6 @@ void colorRing(int ringsFromCenter, int xBoxNum, int yBoxNum, color myColor) {
 void myMousePressed() {
   background(255);
   
-  //println("x:", mouseX, " y:", mouseY, "recursionLevel:", recursionLevel);
-  //println(pow(2,recursionLevel-1));
-  //int xBoxNum = int(mouseX/(width/pow(2,recursionLevel)));
-  //int yBoxNum = int(mouseY/(height/pow(2,recursionLevel)));
-  //println("X box num is:", mouseX/(width/pow(2,recursionLevel)), "Y box num is:", mouseY/(height/pow(2,recursionLevel)));
-  //println("Matrix position is: [2*floor(xBoxNum)][yBoxNum] and [2*floor(xBoxNum) + 1][yBoxNum]");
-  //pointToMatrixEntry(mouseX,mouseY);
-  
-  //colorMatrix = createMatrix(colorMatrix);
   colorMatrix[clickedBoxX][clickedBoxY] = 255;
   
   //stroke(random(255), random(255), random(255));
@@ -393,15 +321,15 @@ void mousePressed(){
 
 void mouseReleased(){
   println("in mouse RELEASEDDDDDDDD");
-  numRings = append(numRings, ringsFromCenter);
-  currRing = append(currRing, ringsFromCenter);
-  rectColor = append(rectColor, color(random(255), random(255), random(255)));
+  numRings = append(numRings, globalRingsFromCenter);
+  currRing = append(currRing, globalRingsFromCenter);
+  rectColor = append(rectColor, color(random(255), random(255), random(255), 255));
   growRectColor = append(growRectColor, color(random(255), random(255), random(255)));
   rectMode = append(rectMode, "down");
   rectCenterX = append(rectCenterX, clickedBoxX);
   rectCenterY = append(rectCenterY, clickedBoxY);
   isMousePressed = false;
-  ringsFromCenter = 1;
+  globalRingsFromCenter = 1;
 }
 
 //Boxes = 2^level-1
