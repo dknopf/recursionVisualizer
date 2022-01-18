@@ -199,9 +199,9 @@ void updateExistingRects(){
           else {
             println("color in up is:", rectColor[rectNum]);
             println("color[0] in up is:", rectColor[rectNum]);
-            //rectColor[rectNum] = color(red(rectColor[rectNum]), green(rectColor[rectNum]), blue(rectColor[rectNum]));
+            rectColor[rectNum] = color(red(rectColor[rectNum]), green(rectColor[rectNum]), blue(rectColor[rectNum]));
             //THIS IS THE CODE THAT SHOULD BE MAKING IT MORE TRANSLUCENT BUT ISNT
-            rectColor[rectNum] = color(red(rectColor[rectNum]), green(rectColor[rectNum]), blue(rectColor[rectNum]), alpha(rectColor[rectNum])-15);
+            //rectColor[rectNum] = color(red(rectColor[rectNum]), green(rectColor[rectNum]), blue(rectColor[rectNum]), alpha(rectColor[rectNum])-15);
             colorRing(currRing[rectNum], rectCenterX[rectNum], rectCenterY[rectNum], rectColor[rectNum]);
             
             
